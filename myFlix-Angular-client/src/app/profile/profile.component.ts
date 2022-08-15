@@ -2,6 +2,9 @@ import { Component, OnInit } from '@angular/core';
 import { FetchApiDataService } from '../fetch-api-data.service';
 
 import { EditProfileComponent } from '../edit-profile/edit-profile.component';
+import { GenreComponent } from '../genre/genre.component';
+import { DirectorComponent } from '../director/director.component';
+import { SynopsisComponent } from '../synopsis/synopsis.component';
 
 import { MatDialog } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
@@ -15,6 +18,8 @@ import { Router } from '@angular/router';
 })
 export class ProfileComponent implements OnInit {
   user: any = {};
+  Username = localStorage.getItem('user');
+  favMovies: any[] = [];
 
   constructor(
     public fetchApiData: FetchApiDataService,
@@ -25,6 +30,7 @@ export class ProfileComponent implements OnInit {
 
   ngOnInit(): void {
     this.getUser();
+    this.getFavoriteMovies();
   }
 
   /**
@@ -33,10 +39,38 @@ export class ProfileComponent implements OnInit {
    * @function getUser
    */
   getUser(): void {
-    this.fetchApiData.getUser().subscribe((resp: any) => {
-      this.user = resp;
-      console.log(this.user);
-      return this.user;
+    const user = localStorage.getItem('user');
+    if (user) {
+      this.fetchApiData.getUser(user).subscribe((res: any) => {
+        this.user = res;
+        console.log(this.user);
+        return this.user;
+      });
+    }
+  }
+
+  getFavoriteMovies(): void {
+    const user = localStorage.getItem('user');
+    if (user) {
+      this.fetchApiData.getUser(user).subscribe((res: any) => {
+        this.favMovies = res.FavoriteMovies;
+        console.log(this.favMovies);
+        return this.favMovies;
+      });
+    }
+  }
+
+  removeFavoriteMovies(movieID: string, title: string): void {
+    this.fetchApiData.deleteFavoriteMovies(movieID).subscribe((resp: any) => {
+      console.log(resp);
+      this.snackBar.open(
+        `${title} has been removed from your favorites!`,
+        'OK',
+        {
+          duration: 2000,
+        }
+      );
+      this.ngOnInit();
     });
   }
 

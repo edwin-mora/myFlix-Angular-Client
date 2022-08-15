@@ -32,3 +32,28 @@
 
   <!-- Display Favorite Movies -->
 </div>
+<h2 class="user-fav">My Favorite Movies</h2>
+<div class="favorites-container">
+  <mat-card
+    *ngFor="let favorite of favMovies; let i = index"
+    class="favorite-card"
+  >
+    <mat-card-header class="fav-header">
+      <mat-card-title class="fav-title">{{ favorite.Title }}</mat-card-title>
+      <mat-card-subtitle class="fav-subtitle">
+        Directed by: {{ favorite.Director.Name }}
+      </mat-card-subtitle>
+    </mat-card-header>
+    <div class="img-container">
+      <img src="{{ favorite.ImagePath }}" alt="{{ favorite.Title }}" />
+    </div>
+    <mat-card-actions class="fav-action"> </mat-card-actions>
+
+    <button
+      mat-icon-button
+      (click)="removeFavoriteMovies(favorite._id, favorite.title)"
+    >
+      <mat-icon class="remove-btn">remove_circle</mat-icon>
+    </button>
+  </mat-card>
+</div>

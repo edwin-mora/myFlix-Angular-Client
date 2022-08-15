@@ -6,41 +6,38 @@ import { FetchApiDataService } from '../fetch-api-data.service';
 //this import is used to display notifications back to the user
 import { MatSnackBar } from '@angular/material/snack-bar';
 
-
-
-
-
 @Component({
   selector: 'app-user-registration-form',
   templateUrl: './user-registration-form.component.html',
-  styleUrls: ['./user-registration-form.component.scss']
+  styleUrls: ['./user-registration-form.component.scss'],
 })
 export class UserRegistrationFormComponent implements OnInit {
-
-  @Input() userData = { Username: '', Password: '', Email: '', Birthday: ''};
+  @Input() userData = { Username: '', Password: '', Email: '', Birthday: '' };
 
   constructor(
     public fetchApiData: FetchApiDataService,
     public dialogRef: MatDialogRef<UserRegistrationFormComponent>,
-    public snackBar: MatSnackBar) { }
+    public snackBar: MatSnackBar
+  ) {}
 
-  ngOnInit(): void {
+  ngOnInit(): void {}
+
+  //this function is responsible for sending the fomr inputs to the backend
+  registerUser(): void {
+    this.fetchApiData.userRegistration(this.userData).subscribe(
+      (result) => {
+        // logic for successful user registration goes here
+        this.dialogRef.close(); // closes the modal on successful login
+        this.snackBar.open('User registered successfully!', 'OK', {
+          duration: 2000,
+        });
+      },
+      (result) => {
+        console.log(result);
+        this.snackBar.open(result, 'OK', {
+          duration: 2000,
+        });
+      }
+    );
   }
-
-	//this function is responsible for sending the fomr inputs to the backend
-	registerUser(): void {
-		this.fetchApiData.userRegistration(this.userData).subscribe((result) => {
-			// logic for successful user registration goes here
-			this.dialogRef.close(); // closes the modal on successful login
-			this.snackBar.open('User registered successfully!', 'OK', {
-				duration: 2000
-			});
-		}, (result) => {
-			console.log(result);
-			this.snackBar.open(result, 'OK', {
-				duration: 2000
-			});
-		});
-	}
-
 }
