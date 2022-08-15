@@ -1,18 +1,16 @@
 import { Component, OnInit } from '@angular/core';
 import { FetchApiDataService } from '../fetch-api-data.service';
+import { MatDialog } from '@angular/material/dialog';
+import { MatSnackBar } from '@angular/material/snack-bar';
+import { Router } from '@angular/router';
 
 import { EditProfileComponent } from '../edit-profile/edit-profile.component';
 import { GenreComponent } from '../genre/genre.component';
 import { DirectorComponent } from '../director/director.component';
 import { SynopsisComponent } from '../synopsis/synopsis.component';
 
-import { MatDialog } from '@angular/material/dialog';
-import { MatSnackBar } from '@angular/material/snack-bar';
-
-import { Router } from '@angular/router';
-
 @Component({
-  selector: 'app-profile',
+  selector: 'app-user-profile',
   templateUrl: './profile.component.html',
   styleUrls: ['./profile.component.scss'],
 })
@@ -22,10 +20,10 @@ export class ProfileComponent implements OnInit {
   favMovies: any[] = [];
 
   constructor(
-    public fetchApiData: FetchApiDataService,
     public dialog: MatDialog,
-    public router: Router,
-    public snackBar: MatSnackBar
+    public fetchApiData: FetchApiDataService,
+    public snackBar: MatSnackBar,
+    public router: Router
   ) {}
 
   ngOnInit(): void {
@@ -34,10 +32,12 @@ export class ProfileComponent implements OnInit {
   }
 
   /**
-   * Gets user data from api call and sets the user variable to returned JSON file
-   * @returns object holding user information
-   * @function getUser
+   * call API endpoint to get user info
+   * @function getUserProfile
+   * @param Username
+   * @return users data in json format
    */
+
   getUser(): void {
     const user = localStorage.getItem('user');
     if (user) {
@@ -49,6 +49,9 @@ export class ProfileComponent implements OnInit {
     }
   }
 
+  /**
+   * get users FavoriteMovies from the users data
+   */
   getFavoriteMovies(): void {
     const user = localStorage.getItem('user');
     if (user) {
@@ -60,6 +63,12 @@ export class ProfileComponent implements OnInit {
     }
   }
 
+  /**
+   * use API end-point to remove user favorite
+   * @function deleteFavoriteMovies
+   * @param Id {string}
+   * @returns updated users data in json format
+   */
   removeFavoriteMovies(movieID: string, title: string): void {
     this.fetchApiData.deleteFavoriteMovies(movieID).subscribe((resp: any) => {
       console.log(resp);
@@ -75,17 +84,10 @@ export class ProfileComponent implements OnInit {
   }
 
   /**
-   * opens the edit profile dialog from EditProfileComponent to allow user to edit their details
-   */
-  openEditProfileDialog(): void {
-    this.dialog.open(EditProfileComponent, {
-      width: '300px',
-    });
-  }
-
-  /**
-   * deletes the user profile, redirects to welcome screen
-   * @function deleteUser
+   * call API endpoint to remove the current user
+   * @function deleteUserProfile
+   * @param Username {any}
+   * @return that the account has been removed
    */
   deleteProfile(): void {
     if (
@@ -108,4 +110,54 @@ export class ProfileComponent implements OnInit {
       });
     }
   }
+
+  /**
+   * open a dialog to edit the profile of the user
+   * @module EditProfileFormComponent
+   */
+  openEditProfileDialog(): void {
+    this.dialog.open(EditProfileComponent, {
+      width: '300px',
+    });
+  }
+
+  /**
+   *open a dialog to display the GenreViewComponent
+   * @param name {string}
+   * @param description {string}
+   */
+  openGenreDialog(name: string, description: string): void {
+    this.dialog.open(GenreComponent, {
+      data: { name: name, description: description },
+      width: '300px',
+    });
+  }
+
+  /**
+   * open a dialog to display the DirectorViewComponent
+   * @param name {string}
+   * @param bio {string}
+   * @param birthdate {string}
+   */
+
+  openDirectorDialog(name: string, bio: string, birthdate: string): void {
+    this.dialog.open(DirectorComponent, {
+      data: { name: name, bio: bio, birth: birthdate },
+      width: '300px',
+    });
+  }
+
+  /**
+   * open a dialog to display the MovieDescriptionComponent
+   * @param title {string}
+   * @param description {string}
+   */
+  openSynopsisDialog(title: string, description: string): void {
+    this.dialog.open(SynopsisComponent, {
+      data: { title: title, description: description },
+      width: '300px',
+    });
+  }
 }
+
+// #############################################
