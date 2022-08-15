@@ -1,93 +1,59 @@
 import { Component, OnInit } from '@angular/core';
 import { FetchApiDataService } from '../fetch-api-data.service';
+
 import { MatDialog } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
+import { EditProfileComponent } from '../edit-profile/edit-profile.component';
 import { Router } from '@angular/router';
 
-import { EditProfileComponent } from '../edit-profile/edit-profile.component';
-import { GenreComponent } from '../genre/genre.component';
 import { DirectorComponent } from '../director/director.component';
+import { GenreComponent } from '../genre/genre.component';
 import { SynopsisComponent } from '../synopsis/synopsis.component';
 
 @Component({
-  selector: 'app-user-profile',
+  selector: 'app-profile',
   templateUrl: './profile.component.html',
   styleUrls: ['./profile.component.scss'],
 })
 export class ProfileComponent implements OnInit {
   user: any = {};
-  Username = localStorage.getItem('user');
-  favMovies: any[] = [];
+  favoriteMovies: any[] = [];
+  movies: any[] = [];
 
   constructor(
-    public dialog: MatDialog,
     public fetchApiData: FetchApiDataService,
-    public snackBar: MatSnackBar,
-    public router: Router
+    public MatDialog: MatDialog,
+    public router: Router,
+    public snackBar: MatSnackBar
   ) {}
 
   ngOnInit(): void {
-    this.getUser();
+    this.getUserInfo();
     this.getFavoriteMovies();
   }
-
   /**
-   * call API endpoint to get user info
-   * @function getUserProfile
-   * @param Username
-   * @return users data in json format
+   * Gets user data
+   * @returns object holding user info
+   * @function getUser
    */
-
-  getUser(): void {
-    const user = localStorage.getItem('user');
-    if (user) {
-      this.fetchApiData.getUser(user).subscribe((res: any) => {
-        this.user = res;
-        console.log(this.user);
-        return this.user;
-      });
-    }
+  getUserInfo(): void {
+    this.fetchApiData.getUser().subscribe((resp: any) => {
+      this.user = resp;
+      return this.user;
+    });
   }
-
   /**
-   * get users FavoriteMovies from the users data
+   * opens the edit profile dialog to allow user to edit their details
    */
-  getFavoriteMovies(): void {
-    const user = localStorage.getItem('user');
-    if (user) {
-      this.fetchApiData.getUser(user).subscribe((res: any) => {
-        this.favMovies = res.FavoriteMovies;
-        console.log(this.favMovies);
-        return this.favMovies;
-      });
-    }
-  }
-
-  /**
-   * use API end-point to remove user favorite
-   * @function deleteFavoriteMovies
-   * @param Id {string}
-   * @returns updated users data in json format
-   */
-  removeFavoriteMovies(movieID: string, title: string): void {
-    this.fetchApiData.deleteFavoriteMovies(movieID).subscribe((resp: any) => {
-      console.log(resp);
-      this.snackBar.open(
-        `${title} has been removed from your favorites!`,
-        'OK',
-        {
-          duration: 2000,
-        }
-      );
-      this.ngOnInit();
+  openEditProfileDialog(): void {
+    this.MatDialog.open(EditProfileComponent, {
+      width: '300px',
     });
   }
 
   /**
-   * call API endpoint to remove the current user
-   * @function deleteUserProfile
-   * @param Username {any}
-   * @return that the account has been removed
+   * delete the user profile
+   * @function deleteUser
    */
   deleteProfile(): void {
     if (
@@ -110,54 +76,83 @@ export class ProfileComponent implements OnInit {
       });
     }
   }
-
   /**
-   * open a dialog to edit the profile of the user
-   * @module EditProfileFormComponent
+   * Gets user's favorite movies data
+   * @function getAllMovies
+   * @function getFavouriteMovies
    */
-  openEditProfileDialog(): void {
-    this.dialog.open(EditProfileComponent, {
-      width: '300px',
+  getFavoriteMovies(): void {
+    this.fetchApiData.getAllMovies().subscribe((resp: any) => {
+      this.movies = resp;
+      console.log(this.user.FavoriteMovies);
+      this.movies.forEach((movie: any) => {
+        this.fetchApiData.getFavoriteMovies().subscribe((result: any) => {
+          if (result.includes(movie._id)) {
+            this.favoriteMovies.push(movie);
+          }
+        });
+      });
     });
   }
 
   /**
-   *open a dialog to display the GenreViewComponent
-   * @param name {string}
-   * @param description {string}
+   * opens the movie's director info dialog
+   */
+  openDirectorDialog(name: string, bio: string, birthday: Date): void {
+    this.MatDialog.open(DirectorComponent, {
+      data: {
+        Name: name,
+        Bio: bio,
+        Birthday: birthday,
+      },
+      // Assign dialog width
+      width: '500px',
+    });
+  }
+  /**
+   * opens the movie's genre info dialog
    */
   openGenreDialog(name: string, description: string): void {
-    this.dialog.open(GenreComponent, {
-      data: { name: name, description: description },
-      width: '300px',
+    this.MatDialog.open(GenreComponent, {
+      data: {
+        Name: name,
+        Description: description,
+      },
+      // Assign dialog width
+      width: '500px',
     });
   }
-
   /**
-   * open a dialog to display the DirectorViewComponent
-   * @param name {string}
-   * @param bio {string}
-   * @param birthdate {string}
-   */
-
-  openDirectorDialog(name: string, bio: string, birthdate: string): void {
-    this.dialog.open(DirectorComponent, {
-      data: { name: name, bio: bio, birth: birthdate },
-      width: '300px',
-    });
-  }
-
-  /**
-   * open a dialog to display the MovieDescriptionComponent
-   * @param title {string}
-   * @param description {string}
+   * opens the movie details dialog
    */
   openSynopsisDialog(title: string, description: string): void {
-    this.dialog.open(SynopsisComponent, {
-      data: { title: title, description: description },
-      width: '300px',
+    this.MatDialog.open(SynopsisComponent, {
+      data: {
+        Title: title,
+        Description: description,
+      },
+      // Assign dialog width
+      width: '500px',
+    });
+  }
+  /**
+   * Remove movie from user's favourite list
+   * @function deleteFavouriteMovies
+   */
+  removeFromFavoriteMovies(id: string, title: string): void {
+    console.log(id);
+    this.fetchApiData.deleteFavoriteMovies(id).subscribe((result) => {
+      this.snackBar.open(
+        `Successfully removed ${title} from favorite movies.`,
+        'OK',
+        {
+          duration: 4000,
+          verticalPosition: 'top',
+        }
+      );
+      setTimeout(function () {
+        window.location.reload();
+      }, 2000);
     });
   }
 }
-
-// #############################################
