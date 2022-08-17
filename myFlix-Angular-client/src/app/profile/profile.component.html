@@ -1,84 +1,53 @@
 <app-navbar></app-navbar>
-<div class="user-profile-page">
-  <!-- User Profile -->
-  <mat-card class="user-profile-card">
-    <mat-card-header class="user-profile-card-header">
-      <mat-card-title>Profile Information</mat-card-title>
-    </mat-card-header>
-
-    <!-- View Profile Information -->
-    <mat-card-content class="user-profile-card-content">
-      <p><b>Username:</b> {{ user.Username }}</p>
-      <p><b>Email:</b> {{ user.Email }}</p>
-      <p><b>Birthday:</b> {{ user.Birthday | date }}</p>
-      <p><b>Birthday:</b> {{ user.FavoriteMovies }}</p>
-    </mat-card-content>
-
-    <!-- Edit Profile Information & Delete Profile -->
-    <mat-card-actions class="user-profile-actions">
-      <button
-        mat-raised-button
-        (click)="openEditProfileDialog()"
-        color="primary"
-      >
-        <mat-icon>edit</mat-icon>
-        Edit Profile
-      </button>
-      <button mat-raised-button (click)="deleteProfile()" color="warn">
-        <mat-icon>delete_forever</mat-icon>
-        Delete Profile
-      </button>
-    </mat-card-actions>
-  </mat-card>
-
-  <div class="favorite-movies-header">
-    <h2 class="mat-card-favorite-movies">Favorite Movies:</h2>
-  </div>
-  <div style="display: flex">
-    <mat-card *ngFor="let movie of favoriteMovies" style="flex: 1 1 auto">
-      <mat-card-header>
-        <mat-card-title>{{ movie.Title }}</mat-card-title>
-        <mat-card-subtitle
-          >Directed by: {{ movie.Director.Name }}</mat-card-subtitle
-        >
-      </mat-card-header>
-      <img height="300px" src="{{ movie.ImagePath }}" alt="{{ movie.Title }}" />
+<div class="profile">
+  <div class="user-info">
+    <mat-card-title class="profile-titles">User Info</mat-card-title>
+    <mat-card>
+      <mat-card-content>
+        <p>Username: {{ user.Username }}</p>
+        <p>Email: {{ user.Email }}</p>
+        <p>Birthday: {{ user.Birthday | date }}</p>
+      </mat-card-content>
       <mat-card-actions>
         <button
-          mat-button
-          (click)="openGenreDialog(movie.Genre.Name, movie.Genre.Description)"
+          mat-raised-button
           color="primary"
+          (click)="openEditProfileDialog(user)"
         >
-          Genre
+          Edit User Info
         </button>
-        <button
-          mat-button
-          (click)="
-            openDirectorDialog(
-              movie.Director.Name,
-              movie.Director.Bio,
-              movie.Director.Birth
-            )
-          "
-          color="primary"
-        >
-          Director
-        </button>
-        <button
-          mat-button
-          (click)="openSynopsisDialog(movie.Title, movie.Description)"
-          color="primary"
-        >
-          More info
-        </button>
-        <button
-          mat-button
-          (click)="removeFromFavoriteMovies(movie._id, movie.Title)"
-          color="primary"
-        >
-          <mat-icon>favorite</mat-icon>
+        <button mat-raised-button color="warn" (click)="deleteUser()">
+          Delete User
         </button>
       </mat-card-actions>
     </mat-card>
+  </div>
+  <div class="user-favorites">
+    <mat-card-title class="profile-titles">Favorite Movies</mat-card-title>
+    <div class="favorite-cards">
+      <mat-card *ngFor="let favoriteMovie of favoriteMovies" class="favorites">
+        <mat-card-header>
+          <mat-card-title>{{ favoriteMovie.Title }}</mat-card-title>
+          <mat-card-subtitle
+            >Directed by: {{ favoriteMovie.Director.Name }}</mat-card-subtitle
+          >
+        </mat-card-header>
+        <img
+          src="{{ favoriteMovie.ImagePath }}"
+          alt="{{ favoriteMovie.Title }}"
+          width="250px"
+        />
+        <mat-card-content>
+          <button
+            mat-icon-button
+            color="warn"
+            (click)="deleteMovieFromFavorites(favoriteMovie._id)"
+          >
+            Remove from List
+            <mat-icon>delete_outline</mat-icon>
+          </button>
+        </mat-card-content>
+      </mat-card>
+    </div>
   </div>
 </div>

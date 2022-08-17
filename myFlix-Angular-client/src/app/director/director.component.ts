@@ -1,5 +1,6 @@
 import { Component, OnInit, Inject } from '@angular/core';
 import { MAT_DIALOG_DATA } from '@angular/material/dialog';
+import { FetchApiDataService } from '../fetch-api-data.service';
 
 @Component({
   selector: 'app-director',
@@ -12,7 +13,8 @@ export class DirectorComponent implements OnInit {
     public data: {
       Name: string;
       Bio: string;
-      Birthyear: Date;
+      Birth: string;
+      Death: string;
     }
   ) {}
 

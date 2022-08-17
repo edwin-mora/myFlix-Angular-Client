@@ -1,10 +1,12 @@
 import { Component, OnInit } from '@angular/core';
+import { Router } from '@angular/router';
 import { FetchApiDataService } from '../fetch-api-data.service';
 import { MatDialog } from '@angular/material/dialog';
-
-import { DirectorComponent } from '../director/director.component';
+import { MatSnackBar } from '@angular/material/snack-bar';
 import { GenreComponent } from '../genre/genre.component';
+import { DirectorComponent } from '../director/director.component';
 import { SynopsisComponent } from '../synopsis/synopsis.component';
+import { Title } from '@angular/platform-browser';
 
 @Component({
   selector: 'app-movie-card',
@@ -13,20 +15,23 @@ import { SynopsisComponent } from '../synopsis/synopsis.component';
 })
 export class MovieCardComponent implements OnInit {
   movies: any[] = [];
-  favouriteMovies: any[] = [];
+  user: any = {};
+
   constructor(
     public fetchApiData: FetchApiDataService,
-    public MatDialog: MatDialog
+    public dialog: MatDialog,
+    public snackBar: MatSnackBar,
+    public router: Router
   ) {}
 
   ngOnInit(): void {
-    this.getFavoriteMovies();
     this.getMovies();
+    this.getUser();
   }
+
   /**
-   * Gets movies from api call and sets the movies state to return JSON file
-   * @returns array holding movies objects
-   * @function getAllMovies
+   * Get all movies from API
+   * @returns array of JSON movie objects
    */
   getMovies(): void {
     this.fetchApiData.getAllMovies().subscribe((resp: any) => {
@@ -37,91 +42,107 @@ export class MovieCardComponent implements OnInit {
   }
 
   /**
-   * opens the user director dialog from DirectorComponent to displaying details
-   * @param name
-   * @param bio
-   * @param birthday
+   * Get user info from API
+   * @returns JSON user object
    */
-  openDirectorDialog(name: string, bio: string, birthday: Date): void {
-    this.MatDialog.open(DirectorComponent, {
-      data: {
-        Name: name,
-        Bio: bio,
-        Birthday: birthday,
-      },
-      // Assign dialog width
-      width: '500px',
+  getUser(): void {
+    this.fetchApiData.getUserInfo().subscribe((resp: any) => {
+      this.user = resp;
+      return this.user;
     });
   }
+
   /**
-   * opens the user genre dialog from GenreComponent to displaying details
+   * Opens dialog to display information from GenreComponent
    * @param name
-   * @param description
    */
   openGenreDialog(name: string, description: string): void {
-    this.MatDialog.open(GenreComponent, {
-      data: {
-        Name: name,
-        Description: description,
-      },
-      // Assign dialog width
-      width: '500px',
+    this.dialog.open(GenreComponent, {
+      data: { Name: name, Description: description },
+      width: '350px',
     });
   }
+
   /**
-   * opens the movie details dialog
+   * Opens dialog to display information from DirectorComponent
+   * @param name
+   */
+  openDirectorDialog(name: string, bio: string): void {
+    this.dialog.open(DirectorComponent, {
+      data: { Name: name, Bio: bio },
+      width: '350px',
+    });
+  }
+
+  /**
+   * Opens dialog to display MovieDetailsComponent
    * @param title
    * @param description
    */
-  openSynopsisDialog(title: string, description: string): void {
-    this.MatDialog.open(SynopsisComponent, {
+  openSynopsisDialog(title: any, description: any): void {
+    this.dialog.open(SynopsisComponent, {
       data: {
-        Title: title,
-        Description: description,
+        title: title,
+        description: description,
       },
-      // Assign dialog width
-      width: '500px',
+      width: '350px',
     });
   }
+
   /**
-   * Gets favorite movies and sets the favorite movies variable
-   * @returns array holding ids of user's favorite movies
-   * @function getFavoriteMovies
+   * Add movie to user's favorites list
+   * Invokes ngOnInit when complete to update favorite button UI and user data
+   * Displays success message in snackbar
+   * @param movieID
    */
-  getFavoriteMovies(): void {
-    this.fetchApiData.getFavoriteMovies().subscribe((resp: any) => {
-      this.favouriteMovies = resp;
-      return this.favouriteMovies;
-    });
-  }
-  /**
-   * add a movie to the list of favourite movies
-   * @param id
-   * @function addFavouriteMovies
-   */
-  addToFavoriteMovies(id: string): void {
-    this.fetchApiData.addFavoriteMovies(id).subscribe((result) => {
+  addMovieToFavorites(movieID: string): void {
+    const token = localStorage.getItem('token');
+    this.fetchApiData.addToFavorites(movieID).subscribe((response: any) => {
       this.ngOnInit();
     });
+
+    // show snackbar that favorite was added with option to view favorites
+    this.snackBar
+      .open(`Movie Added to Favorites`, 'View Favorites', {
+        duration: 2000,
+      })
+      .onAction()
+      .subscribe(() => {
+        this.router.navigate(['profile']);
+      });
   }
+
   /**
-   * remove a movie from the list of favourite movies
-   * @param id
-   * @function deleteFavouriteMovies
-   */
-  removeFromFavoriteMovies(id: string): void {
-    console.log(id);
-    this.fetchApiData.deleteFavoriteMovies(id).subscribe((result) => {
-      console.log(result);
-      this.ngOnInit();
-    });
-  }
-  /**
-   * checks if a movie is included in the user's list of favorite movies
-   * @param id
-   * @returns true, if the movie is a favorite move, else false
+   * Checks whether or not movie is currently in favorites list
+   * Changes favorite icon accordingly in HTML
+   * @param id {string}
+   * @returns true or false
    */
   isFavorite(id: string): boolean {
-    return this.favouriteMovies.includes(id);
+    return this.user.FavoriteMovies.includes(id);
+  }
+
+  /**
+   * Remove movie from user's favorites list
+   * Invokes ngOnInit when complete to update favorite button UI and user data
+   * Displays success message in snackbar
+   * @param movieID
+   */
+  deleteMovieFromFavorites(movieID: string): void {
+    const token = localStorage.getItem('token');
+    this.fetchApiData
+      .deleteFromFavorites(movieID)
+      .subscribe((response: any) => {
+        // show snackbar that favorite was added with option to view favorites
+        this.snackBar
+          .open('Movie Removed from Favorites', 'Undo', {
+            duration: 2000,
+          })
+          .onAction()
+          .subscribe(() => {
+            this.addMovieToFavorites(movieID);
+          });
+        this.ngOnInit();
+      });
   }
 }
